@@ -2,112 +2,111 @@ import customtkinter
 import numpy
 
 customtkinter.set_appearance_mode("dark")
-customtkinter.set_default_color_theme("blue")
 
 #Creación y Configuración de la ventana principal
 app=customtkinter.CTk()
-app.geometry("800x600")
+app.geometry("1280x600")
 app.columnconfigure(0,weight=1)
 app.rowconfigure(0,weight=1)
+app.configure(fg_color="#212529")
 
 #Titulo Principal
 title=customtkinter.CTkLabel(master=app,
                              text="Método iterativo de Gauss-Seidel",
                              font=("Impact",35))
-title.grid(row=0,column=0,pady=10)
+title.grid(row=0,column=0,pady=5)
 
 #Creación de frame principal con desplazamiento vertical
-scrollable_frame = customtkinter.CTkScrollableFrame(master=app, width=780, height=500)
+scrollable_frame = customtkinter.CTkScrollableFrame(master=app, width=780, height=500,
+                                                    fg_color="#343A40")
 scrollable_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 scrollable_frame.grid_columnconfigure(0, weight=1)
-scrollable_frame.grid_rowconfigure(1, weight=1)
+scrollable_frame.grid_rowconfigure(0, weight=1)
 
 #Crear frame contenedor del sistema de ecuaciones
 frame_box_system_of_equations=customtkinter.CTkFrame(master=scrollable_frame, border_width=3,
-                                                     border_color="#F2858E")
+                                                     border_color="#212529",fg_color="#495057")
 frame_box_system_of_equations.grid(row=0, column=0, padx=10, pady=10,sticky="nsew")
 frame_box_system_of_equations.grid_columnconfigure(0,weight=1)
-frame_box_system_of_equations.grid_rowconfigure(0,weight=0)
+frame_box_system_of_equations.grid_columnconfigure(1,weight=1)
+frame_box_system_of_equations.grid_rowconfigure(0,weight=1)
 
-#Crear frame sistema de ecuaciones
-frame_system_of_equations=customtkinter.CTkFrame(master=frame_box_system_of_equations)
+#Crear frame sistema de ecuaciones##########################################################################################
+frame_system_of_equations=customtkinter.CTkFrame(master=frame_box_system_of_equations,
+                                                 fg_color="#343A40")
 frame_system_of_equations.grid(row=1, column=0, padx=10, pady=10)
 frame_system_of_equations.grid_columnconfigure(0,weight=1)
-frame_system_of_equations.grid_rowconfigure(0,weight=0)
+frame_system_of_equations.grid_rowconfigure(1,weight=1)
 
 #Titulo para el sitema de ecuaciones
 title=customtkinter.CTkLabel(master=frame_box_system_of_equations,
                              text="Sitema de Ecuaciones 3x3",
                              font=("Lucida Console",22,"bold"))
-title.grid(row=0,column=0,pady=10)
+title.grid(row=0,columnspan=2,pady=10)
 
+#Configuracion de los estilos de los inputs
+style_entry = {
+    "width":70,
+    "font":("Lucida Console",18),
+    "fg_color":"#DEE2E6",
+     "border_color":"#343A40",
+     "text_color":"#000"
+}
 #Ecuacion_Uno
-input_a11=customtkinter.CTkEntry(master=frame_system_of_equations,width=70,
-                                 font=("Lucida Console",18))
+input_a11=customtkinter.CTkEntry(master=frame_system_of_equations, **style_entry)
 input_a11.grid(row=0, column=0,padx=10,pady=10)
 label_signo=customtkinter.CTkLabel(master=frame_system_of_equations, text="X +",
                                    font=("Lucida Console",18,"bold"))
 label_signo.grid(row=0, column=1,padx=10)
-input_a12=customtkinter.CTkEntry(master=frame_system_of_equations,width=70,
-                                 font=("Lucida Console",18))
+input_a12=customtkinter.CTkEntry(master=frame_system_of_equations,**style_entry)
 input_a12.grid(row=0, column=2,padx=10)
 label_signo=customtkinter.CTkLabel(master=frame_system_of_equations, text="Y +",
                                    font=("Lucida Console",18,"bold"))
 label_signo.grid(row=0, column=3,padx=10)
-input_a13=customtkinter.CTkEntry(master=frame_system_of_equations,width=70,
-                                 font=("Lucida Console",18))
+input_a13=customtkinter.CTkEntry(master=frame_system_of_equations,**style_entry)
 input_a13.grid(row=0, column=4,padx=10)
 label_signo=customtkinter.CTkLabel(master=frame_system_of_equations, text="Z =",
                                    font=("Lucida Console",18,"bold"))
 label_signo.grid(row=0, column=5,padx=10)
-input_b1=customtkinter.CTkEntry(master=frame_system_of_equations,width=70,
-                                font=("Lucida Console",18))
+input_b1=customtkinter.CTkEntry(master=frame_system_of_equations, **style_entry)
 input_b1.grid(row=0, column=6,padx=10)
 
 #Ecuacion_Dos
-input_a21=customtkinter.CTkEntry(master=frame_system_of_equations,width=70,
-                                 font=("Lucida Console",18))
+input_a21=customtkinter.CTkEntry(master=frame_system_of_equations, **style_entry)
 input_a21.grid(row=1, column=0,padx=10,pady=10)
 label_signo=customtkinter.CTkLabel(master=frame_system_of_equations, text="X +",
                                    font=("Lucida Console",18,"bold"))
 label_signo.grid(row=1, column=1,padx=10)
-input_a22=customtkinter.CTkEntry(master=frame_system_of_equations,width=70,
-                                 font=("Lucida Console",18))
+input_a22=customtkinter.CTkEntry(master=frame_system_of_equations, **style_entry)
 input_a22.grid(row=1, column=2,padx=10)
 label_signo=customtkinter.CTkLabel(master=frame_system_of_equations, text="Y +",
                                    font=("Lucida Console",18,"bold"))
 label_signo.grid(row=1, column=3,padx=10)
-input_a23=customtkinter.CTkEntry(master=frame_system_of_equations,width=70,
-                                 font=("Lucida Console",18))
+input_a23=customtkinter.CTkEntry(master=frame_system_of_equations, **style_entry)
 input_a23.grid(row=1, column=4,padx=10)
 label_signo=customtkinter.CTkLabel(master=frame_system_of_equations,
                                    text="Z =",font=("Lucida Console",18,"bold"))
 label_signo.grid(row=1, column=5,padx=10)
-input_b2=customtkinter.CTkEntry(master=frame_system_of_equations,width=70,
-                                font=("Lucida Console",18))
+input_b2=customtkinter.CTkEntry(master=frame_system_of_equations, **style_entry)
 input_b2.grid(row=1, column=6,padx=10)
 
 #Ecuacion_Tres
-input_a31=customtkinter.CTkEntry(master=frame_system_of_equations,width=70,
-                                 font=("Lucida Console",18))
+input_a31=customtkinter.CTkEntry(master=frame_system_of_equations,**style_entry)
 input_a31.grid(row=2, column=0,padx=10,pady=10)
 label_signo=customtkinter.CTkLabel(master=frame_system_of_equations, text="X +",
                                    font=("Lucida Console",18,"bold"))
 label_signo.grid(row=2, column=1,padx=10)
-input_a32=customtkinter.CTkEntry(master=frame_system_of_equations,width=70,
-                                 font=("Lucida Console",18))
+input_a32=customtkinter.CTkEntry(master=frame_system_of_equations,**style_entry)
 input_a32.grid(row=2, column=2,padx=10)
 label_signo=customtkinter.CTkLabel(master=frame_system_of_equations, text="Y +",
                                    font=("Lucida Console",18,"bold"))
 label_signo.grid(row=2, column=3,padx=10)
-input_a33=customtkinter.CTkEntry(master=frame_system_of_equations,width=70,
-                                 font=("Lucida Console",18))
+input_a33=customtkinter.CTkEntry(master=frame_system_of_equations,**style_entry)
 input_a33.grid(row=2, column=4,padx=10)
 label_signo=customtkinter.CTkLabel(master=frame_system_of_equations, text="Z =",
                                    font=("Lucida Console",18,"bold"))
 label_signo.grid(row=2, column=5,padx=10)
-input_b3=customtkinter.CTkEntry(master=frame_system_of_equations,width=70,
-                                font=("Lucida Console",18))
+input_b3=customtkinter.CTkEntry(master=frame_system_of_equations,**style_entry)
 input_b3.grid(row=2, column=6,padx=10)
 
 def save_values ():
@@ -118,6 +117,78 @@ def save_values ():
          [input_a31.get(),input_a32.get(),input_a33.get(),input_b3.get()]])
     conversion_values_of_the_system_of_equations=values_of_the_system_of_equations.astype(float)
     return conversion_values_of_the_system_of_equations
+
+#Creacion de frame y configuración de estilos para mostrar el sistema de ecuaciones ordenado #####################################
+frame_system_of_equations_sorted=customtkinter.CTkFrame(master=frame_box_system_of_equations,
+                                                 fg_color="#343A40")
+frame_system_of_equations_sorted.grid(row=1, column=1, padx=10, pady=10)
+frame_system_of_equations_sorted.grid_columnconfigure(0,weight=1)
+frame_system_of_equations_sorted.grid_rowconfigure(1,weight=1)
+
+#Configuracion de los estilos de los label
+style_label = {
+    "width":70,
+    "font":("Lucida Console",18),
+    "fg_color":"#ADB5BD",
+    "corner_radius":4,
+     "text_color":"#000"
+}
+#Ecuacion_Uno
+label_a11=customtkinter.CTkLabel(master=frame_system_of_equations_sorted, **style_label,text="")
+label_a11.grid(row=0, column=0,padx=10,pady=10)
+label_signo=customtkinter.CTkLabel(master=frame_system_of_equations_sorted, text="X +",
+                                   font=("Lucida Console",18,"bold"))
+label_signo.grid(row=0, column=1,padx=10)
+label_a12=customtkinter.CTkLabel(master=frame_system_of_equations_sorted,**style_label,text="")
+label_a12.grid(row=0, column=2,padx=10)
+label_signo=customtkinter.CTkLabel(master=frame_system_of_equations_sorted, text="Y +",
+                                   font=("Lucida Console",18,"bold"))
+label_signo.grid(row=0, column=3,padx=10)
+label_a13=customtkinter.CTkLabel(master=frame_system_of_equations_sorted,**style_label,text="")
+label_a13.grid(row=0, column=4,padx=10)
+label_signo=customtkinter.CTkLabel(master=frame_system_of_equations_sorted, text="Z =",
+                                   font=("Lucida Console",18,"bold"))
+label_signo.grid(row=0, column=5,padx=10)
+label_b1=customtkinter.CTkLabel(master=frame_system_of_equations_sorted, **style_label,text="")
+label_b1.grid(row=0, column=6,padx=10)
+
+#Ecuacion_Dos
+label_a21=customtkinter.CTkLabel(master=frame_system_of_equations_sorted, **style_label,text="")
+label_a21.grid(row=1, column=0,padx=10,pady=10)
+label_signo=customtkinter.CTkLabel(master=frame_system_of_equations_sorted, text="X +",
+                                   font=("Lucida Console",18,"bold"))
+label_signo.grid(row=1, column=1,padx=10)
+label_a22=customtkinter.CTkLabel(master=frame_system_of_equations_sorted, **style_label,text="")
+label_a22.grid(row=1, column=2,padx=10)
+label_signo=customtkinter.CTkLabel(master=frame_system_of_equations_sorted, text="Y +",
+                                   font=("Lucida Console",18,"bold"))
+label_signo.grid(row=1, column=3,padx=10)
+label_a23=customtkinter.CTkLabel(master=frame_system_of_equations_sorted, **style_label,text="")
+label_a23.grid(row=1, column=4,padx=10)
+label_signo=customtkinter.CTkLabel(master=frame_system_of_equations_sorted,
+                                   text="Z =",font=("Lucida Console",18,"bold"))
+label_signo.grid(row=1, column=5,padx=10)
+label_b2=customtkinter.CTkLabel(master=frame_system_of_equations_sorted, **style_label,text="")
+label_b2.grid(row=1, column=6,padx=10)
+
+#Ecuacion_Tres
+label_a31=customtkinter.CTkLabel(master=frame_system_of_equations_sorted,**style_label,text="")
+label_a31.grid(row=2, column=0,padx=10,pady=10)
+label_signo=customtkinter.CTkLabel(master=frame_system_of_equations_sorted, text="X +",
+                                   font=("Lucida Console",18,"bold"))
+label_signo.grid(row=2, column=1,padx=10)
+label_a32=customtkinter.CTkLabel(master=frame_system_of_equations_sorted,**style_label,text="")
+label_a32.grid(row=2, column=2,padx=10)
+label_signo=customtkinter.CTkLabel(master=frame_system_of_equations_sorted, text="Y +",
+                                   font=("Lucida Console",18,"bold"))
+label_signo.grid(row=2, column=3,padx=10)
+label_a33=customtkinter.CTkLabel(master=frame_system_of_equations_sorted,**style_label,text="")
+label_a33.grid(row=2, column=4,padx=10)
+label_signo=customtkinter.CTkLabel(master=frame_system_of_equations_sorted, text="Z =",
+                                   font=("Lucida Console",18,"bold"))
+label_signo.grid(row=2, column=5,padx=10)
+label_b3=customtkinter.CTkLabel(master=frame_system_of_equations_sorted,**style_label,text="")
+label_b3.grid(row=2, column=6,padx=10)
 
 def sort_equations():
     """Funcion para ordenar las ecuaciones."""
@@ -156,24 +227,25 @@ def sort_equations():
         else:
             system_of_equations[[2,2]]= system_of_equations[[2,2]]
             print(system_of_equations)
-            
-    print(system_of_equations)
+    label_a11.configure(text=system_of_equations[0,0])
+
 #Boton_para_ingresar_los_datos_proporcionados_a_el_sistema_de_ecuaciones
 button_enter=customtkinter.CTkButton(master=frame_box_system_of_equations,text="Enter",
                                      font=("Lucida Console",18,"bold"),
-                                     fg_color="#F22E3E",hover_color="#A62940",
+                                     fg_color="#ff477e",hover_color="#ff0a54",
                                      command=sort_equations)
-button_enter.grid(row=2, column=0,padx=10,pady=10,ipady=5)
+button_enter.grid(row=2, columnspan=2,padx=10,pady=10,ipady=5)
 
 #Boton para limpiar los cajas de texto
 button_delete=customtkinter.CTkButton(master=frame_box_system_of_equations,text="Delete",
                                      font=("Lucida Console",18,"bold"),
-                                     fg_color="#F22E3E",hover_color="#A62940"
+                                     fg_color="#ff477e",hover_color="#ff0a54"
                                      )
-button_delete.grid(row=3, column=0,padx=10,pady=10,ipady=5)
+button_delete.grid(row=3, columnspan=2,padx=10,pady=10,ipady=5)
 
 #frame_solucion_del_sistema_de_ecuaciones
-frame_answers=customtkinter.CTkFrame(master=scrollable_frame, border_width=3)
+frame_answers=customtkinter.CTkFrame(master=scrollable_frame, border_width=3,
+                                     border_color="#212529",fg_color="#495057")
 frame_answers.grid(row=1, column=0, padx=10, pady=10,sticky="nsew")
 frame_answers.grid_columnconfigure(0,weight=1)
 frame_answers.grid_rowconfigure(0,weight=0)
