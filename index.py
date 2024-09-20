@@ -5,18 +5,20 @@ customtkinter.set_appearance_mode("dark")
 
 #Creación y Configuración de la ventana principal---------------------------------------------------------------------------------
 app=customtkinter.CTk()
-app.geometry("1280x600")
+ancho_pantalla=app.winfo_screenwidth()
+alto_pantalla=app.winfo_screenheight()
+app.geometry(f"{ancho_pantalla}x{alto_pantalla}")
 app.columnconfigure(0,weight=1)
 app.rowconfigure(0,weight=1)
 app.configure(fg_color="#6c757d")
 
 #Creación y configuración del contenedor principal y de las subpestañas---------------------------------------------------------
-tab_principal=customtkinter.CTkTabview(master=app,width=780, height=650,
+tab_principal=customtkinter.CTkTabview(master=app,width=780, height=660,text_color="#000",
                                        fg_color="#adb5bd",segmented_button_fg_color="#CED4DA",
-                                       segmented_button_selected_color="#1565C0",
-                                       segmented_button_selected_hover_color="#0D47A1",
-                                       segmented_button_unselected_color="#6c757d",
-                                       segmented_button_unselected_hover_color="#212529"
+                                       segmented_button_selected_color="#FF8FA3",
+                                       segmented_button_selected_hover_color="#FF758F",
+                                       segmented_button_unselected_color="#ADB5BD",
+                                       segmented_button_unselected_hover_color="#6C757D"
                                        )
 tab_principal.grid(row=1,column=0,pady=10,padx=10,sticky="nsew")
 tab_principal.columnconfigure(0,weight=1)
@@ -58,7 +60,7 @@ title.grid(row=0,columnspan=2,pady=10)
 #Estilos de los inputs que contiene el frame del sistema de ecuaciones
 style_entry = {
     "width":70,
-    "font":("Lucida Console",18),
+    "font":("Lucida Console",20),
     "fg_color":"#DEE2E6",
      "border_width":0,
      "text_color":"#000"
@@ -143,7 +145,7 @@ style_label_error = {
     "corner_radius":4
 }
 def save_values ():
-    """Funcion para guardar valores."""
+    """Funcion para guardar valores.""" #------------------------------------------------------------------------------------
     values_of_the_system_of_equations=numpy.array(
         [[input_a11.get(),input_a12.get(),input_a13.get(),input_b1.get()],
          [input_a21.get(),input_a22.get(),input_a23.get(),input_b2.get()],
@@ -174,7 +176,7 @@ frame_system_of_equations_sorted.grid_rowconfigure(1,weight=1)
 #Configuracion de los estilos de los label
 style_label = {
     "width":70,
-    "font":("Lucida Console",18),
+    "font":("Lucida Console",20),
     "fg_color":"#DEE2E6",
     "corner_radius":4,
      "text_color":"#000"
@@ -243,42 +245,61 @@ label_signo.grid(row=2, column=5,padx=10)
 label_b3=customtkinter.CTkLabel(master=frame_system_of_equations_sorted,**style_label,text="")
 label_b3.grid(row=2, column=6,padx=10)
 
-#Función para organizar el sistema de ecuaciones para hallar la diagonal dominante---------------------------------------------
-def sort_equations():
-    """Funcion para ordenar las ecuaciones."""
-    system_of_equations=save_values()
-    #ordenar ecuacones segun la primera columna
-    if system_of_equations is not None:
-        column_0=system_of_equations[:,0]
-        indice_fila_max_column_0=numpy.argmax(numpy.abs(column_0))
-        if indice_fila_max_column_0==1:
-            system_of_equations[[0,1]]=system_of_equations[[1,0]]
-        else:
-            if indice_fila_max_column_0==2:
-                system_of_equations[[0,2]]= system_of_equations[[2,0]]
-            else:
-                system_of_equations[[0,0]]= system_of_equations[[0,0]]
-    #ordenar ecuaciones segun la segunda columna
-        column_1=system_of_equations[:,1]
-        indice_fila_max_column_1=numpy.argmax(numpy.abs(column_1))
-        if indice_fila_max_column_1==0:
-            system_of_equations[[0,1]]=system_of_equations[[1,0]]
-        else:
-            if indice_fila_max_column_1==2:
-                system_of_equations[[1,2]]= system_of_equations[[2,1]]
-            else:
-                system_of_equations[[1,1]]= system_of_equations[[1,1]]
 
-    #ordenar ecuaciones segun la tercera columna
-        column_2=system_of_equations[:,2]
-        indice_fila_max_column_2=numpy.argmax(numpy.abs(column_2))
-        if indice_fila_max_column_2==0:
-            system_of_equations[[0,2]]=system_of_equations[[2,0]]
-        else:
-            if indice_fila_max_column_2==1:
-                system_of_equations[[1,2]]= system_of_equations[[2,1]]
-            else:
-                system_of_equations[[2,2]]= system_of_equations[[2,2]]
+def zeros_main_diagonal():
+    """Función para verificar que en la diagonal principal no coeficientes sean difirentes a cero""" #-------------------------
+    system_of_equations=save_values()
+    if system_of_equations is not None:
+        if numpy.any(numpy.diag(system_of_equations==0)):
+            label_error.configure(** style_label_error)
+            label_error.configure(text="Valor de 0 en la diagonal dominante.")
+            return None 
+        return system_of_equations
+    return None
+    
+def identical_or_proportional_rows():
+    """Función para identificar las filas del sistema de ecuaciones son proporcionales o iguales""" #---------------------
+    system_of_equations=zeros_main_diagonal()
+    if system_of_equations is not None:
+        for i in range(3):
+            for j in range(i+1, 3):
+                if numpy.array_equal(system_of_equations[i], system_of_equations[j]):
+                    label_error.configure(** style_label_error)
+                    label_error.configure(text="Filas idénticas. El sistema de ecuaciones no tiene solución única.")
+                    return None
+                ratio = system_of_equations[i] / system_of_equations[j]
+                if numpy.allclose(ratio, ratio[0]):
+                    label_error.configure(** style_label_error)
+                    label_error.configure(text="Filas Proporcionales. El sistema de ecuaciones no tiene solución única.")
+                    return None
+    return system_of_equations
+
+def dominant_diagonal():
+    """Función para determinar si la diagonal principal es dominante""" #-----------------------------------------------------
+    system_of_equations=identical_or_proportional_rows()
+    if system_of_equations is not None:
+        for i in range(3):
+            row_sum = sum(abs(system_of_equations[i][j]) for j in range(3) if i != j)
+            if abs(system_of_equations[i][i]) <= row_sum:
+                return False
+    return True
+
+def sort_equations():
+    """Funcion para ordenar las ecuaciones e intercambiar filas si es necesario"""#------------------------------------------
+    system_of_equations=identical_or_proportional_rows()
+    if system_of_equations is not None:
+        # Asegurarse de que la matriz sea diagonalmente dominante
+        rows,columns = system_of_equations.shape
+        print(columns)
+        #Itera en las filas de la matriz
+        for i in range(rows):
+            if not dominant_diagonal():
+                # Encontrar una fila para intercambiar
+                for j in range(i + 1, rows): #itera en la filas siguientes en la matriz
+                    if abs(system_of_equations[j, i]) > abs(system_of_equations[i, i]):
+                        # Intercambiar filas i y j
+                        system_of_equations[[i, j]] = system_of_equations[[j, i]]
+                        break
 
         label_a11.configure(text=system_of_equations[0,0])
         label_a12.configure(text=system_of_equations[0,1])
@@ -292,7 +313,7 @@ def sort_equations():
         label_a32.configure(text=system_of_equations[2,1])
         label_a33.configure(text=system_of_equations[2,2])
         label_b3.configure(text=system_of_equations[2,3])
-        return system_of_equations
+    return system_of_equations
 
 #Etiqueta de Texto para mostrar posibles errores al ingresar los valores------------------------------------------------------
 label_error=customtkinter.CTkLabel(master=frame_box_system_of_equations,text="", 
@@ -305,7 +326,9 @@ style_entry_others_values = {
     "fg_color":"#DEE2E6",
      "border_width":2,
      "border_color":"#ADB5BD",
-     "text_color":"#000"
+     "text_color":"#000",
+     "height":30,
+     "corner_radius":10
 }
 
 #Estilos de los titulos de los inputs para ingresar otros valores-------------------------------------------------------------
@@ -384,12 +407,16 @@ def limpiar_inputs_frames(*frames):
                 label_a11.configure(text="")
                 label_a12.configure(text="")
                 label_a13.configure(text="")
+                label_b1.configure(text="")
                 label_a21.configure(text="")
                 label_a22.configure(text="")
                 label_a23.configure(text="")
+                label_b2.configure(text="")
                 label_a31.configure(text="")
                 label_a32.configure(text="")
                 label_a33.configure(text="")
+                label_b3.configure(text="")
+                label_error.configure(text="")
 
 #Creación del frame que contendrá botones------------------------------------------------------------------------------------
 frame_button=customtkinter.CTkFrame(master=frame_box_system_of_equations,fg_color="#CED4DA")
@@ -397,13 +424,13 @@ frame_button.grid(row=8,columnspan=2)
 
 #Botón para dar solución al sistema de ecuaciones
 button_solution=customtkinter.CTkButton(master=frame_button,text="=",
-                                     **style_button,fg_color="#42A5F5",
-                                     hover_color="#64B5F6",command=lambda:limpiar_inputs_frames(frame_system_of_equations))
+                                     **style_button,fg_color="#FF8FA3",
+                                     hover_color="#FF758F",command=lambda:limpiar_inputs_frames(frame_system_of_equations))
 button_solution.grid(row=0, column=0,padx=10,pady=10,ipady=5)
 
 #Botón para limpiar los input 
-button_delete=customtkinter.CTkButton(master=frame_button,text="Borrar",fg_color="#FF758F",
-                                      hover_color="#FF8FA3",**style_button,
+button_delete=customtkinter.CTkButton(master=frame_button,text="Borrar",fg_color="#FF8FA3",
+                                      hover_color="#FF758F",**style_button,
                                       command=lambda:limpiar_inputs_frames(frame_system_of_equations))
 button_delete.grid(row=0, column=1,padx=10,pady=10,ipady=5)
 
