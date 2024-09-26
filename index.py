@@ -1,6 +1,7 @@
 from tkinter import ttk
 import customtkinter
 import numpy
+import math
 
 customtkinter.set_appearance_mode("dark")
 
@@ -14,7 +15,7 @@ app.configure(fg_color="#6c757d")
 
 #Creación y configuración del contenedor principal y de las subpestañas---------------------------------------------------------
 tab_principal=customtkinter.CTkTabview(master=app,width=780, height=660,text_color="#000",
-                                       fg_color="#adb5bd",segmented_button_fg_color="#CED4DA",
+                                       fg_color="#adb5bd",segmented_button_fg_color="#F8F9FA",
                                        segmented_button_selected_color="#FF8FA3",
                                        segmented_button_selected_hover_color="#FF758F",
                                        segmented_button_unselected_color="#ADB5BD",
@@ -445,7 +446,8 @@ def save_initial_values_and_margin_of_error():
         conversion_initial_values_and_margin_of_error=values_initial_values_and_margin_of_error.astype(float)
         label_error_others_values.configure(text="")
         label_error_others_values.configure(fg_color="#ced4da")
-        conversion_initial_values_and_margin_of_error=numpy.append(conversion_initial_values_and_margin_of_error,variable_list.get())
+        suma=conversion_initial_values_and_margin_of_error[1]+conversion_initial_values_and_margin_of_error[2]
+        print(suma)
         return conversion_initial_values_and_margin_of_error
     
     except ValueError:
@@ -480,12 +482,6 @@ def limpiar_inputs_frames(*frames):
 #Creación del frame que contendrá botones------------------------------------------------------------------------------------
 frame_button=customtkinter.CTkFrame(master=frame_box_system_of_equations,fg_color="#CED4DA")
 frame_button.grid(row=8,columnspan=2)
-
-#Botón para dar solución al sistema de ecuaciones
-button_solution=customtkinter.CTkButton(master=frame_button,text="=",
-                                     **style_button,fg_color="#FF8FA3",
-                                     hover_color="#FF758F",command=save_initial_values_and_margin_of_error)
-button_solution.grid(row=0, column=0,padx=10,pady=10,ipady=5)
 
 #Botón para limpiar los input 
 button_delete=customtkinter.CTkButton(master=frame_button,text="Borrar",fg_color="#FF8FA3",
@@ -568,9 +564,52 @@ table_of_results.column("X₁", width=200,anchor="center")
 table_of_results.column("X₂", width=200,anchor="center")
 table_of_results.column("X₃", width=200,anchor="center")
 table_of_results.column("Error|εₐ|", width=200,anchor="center")
-
-table_of_results.insert('','end',values=("1","2","3","4"))
 table_of_results.grid(column=0,row=0,pady=10)
 
+def generate_iterations():
+    system_of_equations=show_system_of_equations()
+    label_error.configure(text="")
+    label_error.configure(fg_color="#ced4da")
+    values_initial_values_and_margin_of_error=save_initial_values_and_margin_of_error()
+    if system_of_equations is not None and values_initial_values_and_margin_of_error is not None:
+        max_iteration=100
+        tolerance=100
+        decimals = 4
+        for item in table_of_results.get_children():
+            table_of_results.delete(item)
+        x1_old,x2_old, x3_old = values_initial_values_and_margin_of_error[0],values_initial_values_and_margin_of_error[1],values_initial_values_and_margin_of_error[2]
+        for iteration in range(max_iteration):
+            if tolerance>=(values_initial_values_and_margin_of_error[3]/100):
+                x1 = (system_of_equations[0][3] - system_of_equations[0][1] * x2_old - system_of_equations[0][2] * x3_old) / system_of_equations[0][0]
+                x2 = (system_of_equations[1][3] - system_of_equations[1][0] * x1 - system_of_equations[1][2] * x3_old) / system_of_equations[1][1]
+                x3 = (system_of_equations[2][3] - system_of_equations[2][0] * x1 - system_of_equations[2][1] * x2) / system_of_equations[2][2]
+            
+               
+                x1_rounded_up = math.ceil(x1 * 10**decimals) / 10**decimals
+                x2_rounded_up = math.ceil(x2 * 10**decimals) / 10**decimals
+                x3_rounded_up = math.ceil(x3 * 10**decimals) / 10**decimals
+                
+                if variable_list.get()=="X₁":
+                    tolerance=((x1_rounded_up-x1_old)/x1_rounded_up)*100
+                    print(tolerance)
+                    
+                tolerance=((x3_rounded_up-x3_old)/x3_rounded_up)*100
+                print(tolerance)
+                    
+                tolerance_rounded_up= math.ceil(tolerance * 10**decimals) / 10**decimals 
+                table_of_results.insert('', 'end', values=(iteration + 1, x1_rounded_up,x2_rounded_up, x3_rounded_up,tolerance_rounded_up))
+                x1_old, x2_old, x3_old = x1_rounded_up, x2_rounded_up, x3_rounded_up
+                
+                if tolerance < values_initial_values_and_margin_of_error[3]:
+                    break
+    
+#Botón para dar solución al sistema de ecuaciones
+button_solution=customtkinter.CTkButton(master=frame_button,text="=",
+                                     **style_button,fg_color="#FF8FA3",
+                                     hover_color="#FF758F",command=generate_iterations)
+button_solution.grid(row=0, column=0,padx=10,pady=10,ipady=5)
+
+tab_user_manual=tab_principal.add("Manual de Uso")
+tab_user_manual.columnconfigure(0,weight=1)
 
 app.mainloop()
