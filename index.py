@@ -10,16 +10,16 @@ app=customtkinter.CTk()
 app.geometry("1280x650")
 app.columnconfigure(0,weight=1)
 app.rowconfigure(0,weight=1)
-app.configure(fg_color="#767b91")
+app.configure(fg_color="#0D1B2A")
 #app.resizable(False,False)
 
 #Creación y configuración del contenedor principal y de las subpestañas---------------------------------------------------------
 tab_principal=customtkinter.CTkTabview(master=app,width=780, height=660,text_color="#000",
-                                       fg_color="#c7ccdb",segmented_button_fg_color="#F6F6F6",
+                                       fg_color="#415A77",segmented_button_fg_color="#f2f4f7",
                                        segmented_button_selected_color="#FF7096",
-                                       segmented_button_selected_hover_color="#FF477E",
-                                       segmented_button_unselected_color="#bec5da",
-                                       segmented_button_unselected_hover_color="#9BA2C0"
+                                       segmented_button_selected_hover_color="#FF99AC",
+                                       segmented_button_unselected_color="#778DA9",
+                                       segmented_button_unselected_hover_color="#8ea0b8"
                                        )
 tab_principal.grid(row=1,column=0,pady=10,padx=10,sticky="nsew")
 tab_principal.columnconfigure(0,weight=1)
@@ -33,12 +33,12 @@ tab_system_of_equations.columnconfigure(0,weight=1)
 #Titulo Principal
 title=customtkinter.CTkLabel(master=tab_system_of_equations,
                              text="Método iterativo de Gauss-Seidel",
-                             font=("Impact",35),text_color="#212529")
+                             font=("Impact",35),text_color="#fff")
 title.grid(row=0,column=0)
 
 #Creación y configuración del frame que contiene los elementos de la pestaña sistema de ecuaciones-------------------------------
 frame_box_system_of_equations=customtkinter.CTkFrame(master=tab_system_of_equations,
-                                                    fg_color="#e1e5ee")
+                                                    fg_color="#778DA9")
 frame_box_system_of_equations.grid(row=1, column=0, padx=10, pady=10,sticky="nsew")
 frame_box_system_of_equations.grid_columnconfigure(0,weight=1)
 frame_box_system_of_equations.grid_columnconfigure(1,weight=1)
@@ -46,7 +46,7 @@ frame_box_system_of_equations.grid_rowconfigure(0,weight=1)
 
 #Crear frame que contendrá el sistema de ecuaciones------------------------------------------------------------------------------
 frame_system_of_equations=customtkinter.CTkFrame(master=frame_box_system_of_equations,
-                                                 fg_color="#BEC5DA")
+                                                 fg_color="#415A77")
 frame_system_of_equations.grid(row=2, column=0, padx=10, pady=10)
 frame_system_of_equations.grid_columnconfigure(0,weight=1)
 frame_system_of_equations.grid_rowconfigure(0,weight=1)
@@ -62,14 +62,14 @@ title.grid(row=0,columnspan=2,pady=10)
 style_entry = {
     "width":70,
     "font":("Lucida Console",20),
-    "fg_color":"#F8F9FA",
+    "fg_color":"#E4EBF1",
      "border_width":0,
      "text_color":"#000"
 }
 #Estilos para los label que contienen el frame del sistema de ecuaciones
 style_label_sign = {
     "font":("Lucida Console",18,"bold"),
-     "text_color":"#212529"
+     "text_color":"#E0E1DD"
 }
 
 #Titulo que indica que se deben ingresar los valores de los coeficientes del sistema de  ecuaciones
@@ -169,7 +169,7 @@ def save_values():
 
 #Frame para mostrar el sistema de ecuaciones con intercambio de filas si es necesario------------------------------------------
 frame_system_of_equations_sorted=customtkinter.CTkFrame(master=frame_box_system_of_equations,
-                                                 fg_color="#BEC5DA")
+                                                 fg_color="#415A77")
 frame_system_of_equations_sorted.grid(row=2, column=1, padx=10, pady=10)
 frame_system_of_equations_sorted.grid_columnconfigure(0,weight=1)
 frame_system_of_equations_sorted.grid_rowconfigure(1,weight=1)
@@ -178,7 +178,7 @@ frame_system_of_equations_sorted.grid_rowconfigure(1,weight=1)
 style_label = {
     "width":70,
     "font":("Lucida Console",20),
-    "fg_color":"#F8F9FA",
+    "fg_color":"#E4EBF1",
     "corner_radius":4,
      "text_color":"#000"
 }
@@ -312,7 +312,7 @@ def sort_equations():
                 system_of_equations[i], system_of_equations[max_row] = system_of_equations[max_row].copy(), system_of_equations[i].copy()
     return system_of_equations
 
-def get_dominant_diagonal():
+def get_dominant_diagonal_sum_absolute_values():
     """Función oara verificar si el sistema de ecuaciones con permutación, se puede obtener la diagonal dominante"""
     system_of_equations=sort_equations()
     if system_of_equations is not None:
@@ -321,13 +321,25 @@ def get_dominant_diagonal():
             diagonal = abs(system_of_equations[i][i])
             suma_fila = sum(abs(system_of_equations[i][j]) for j in range(n) if j != i)
             if diagonal <= suma_fila:
-                return False      
+                return system_of_equations      
         return system_of_equations 
+    return None
+
+def get_dominant_diagonal_greater_value():
+    """Función para validar que los valores de la diagonal principal son mayores a los valores de la fila y columna y obtener la diagonal dominante"""
+    system_of_equations=get_dominant_diagonal_sum_absolute_values()
+    if system_of_equations is not None:
+        rows, columns = system_of_equations.shape
+        for i in range(rows):
+            for j in range(columns):
+                diagonal = abs(system_of_equations[i][i])
+                if diagonal>abs(system_of_equations[i,j]) and diagonal>system_of_equations[j,i]:
+                    return system_of_equations   
     return None
 
 def show_system_of_equations():
     """Función para mostrar el sistema de ecuaciones valido"""
-    system_of_equations=get_dominant_diagonal()
+    system_of_equations=get_dominant_diagonal_greater_value()
     if system_of_equations is False:
         label_error.configure(** style_label_error)
         label_error.configure(text="No es posible obtener la diagonal dominante")
@@ -357,9 +369,9 @@ label_error.grid(row=4,columnspan=2,pady=5)
 #Estilos de los inputs para ingresar los valores iniciales y error relativo---------------------------------------------------
 style_entry_others_values = {
     "font":("Lucida Console",20),
-    "fg_color":"#F8F9FA",
+    "fg_color":"#E4EBF1",
      "border_width":2,
-     "border_color":"#BEC5DA",
+     "border_color":"#778DA9",
      "text_color":"#000",
      "height":30,
      "corner_radius":10
@@ -368,25 +380,27 @@ style_entry_others_values = {
 #Estilos de los titulos de los inputs para ingresar otros valores-------------------------------------------------------------
 style_label_others_values = {
     "font":("Lucida Console",12,"bold"),
-     "text_color":"#495057",
+     "text_color":"#c0cad8",
 }
 
 #Estilos para los botones------------------------------------------------------------------------------------------------------
 style_button = {
     "font":("Lucida Console",15,"bold"),
      "text_color":"#000",
-     "corner_radius":50
+     "corner_radius":50,
+     "border_width":3
 }
 
 #Boton para validar que el sistema de ecuaciones y organizar el sistema de ecuaciones si es necesario--------------------------
 button_validate=customtkinter.CTkButton(master=frame_box_system_of_equations,text="Validar",
-                                     **style_button,fg_color="#5682FB", hover_color="#2F67FF",command=show_system_of_equations
+                                     **style_button,fg_color="#FF85A1",border_color="#FF477E",
+                                     hover_color="#FF477E",command=show_system_of_equations
                                      )
 button_validate.grid(row=5, columnspan=2,padx=10,pady=5,ipady=5)
 
 #Frame para definir los valores iniciales y el valor relativo de error-------------------------------------------------------
 frame_enter_others_values=customtkinter.CTkFrame(master=frame_box_system_of_equations,height=30,
-                                                 fg_color="#B8CBFF")
+                                                 fg_color="#415A77")
 frame_enter_others_values.grid(row=6,columnspan=2,pady=10,padx=10)
 label_initial_value_x1=customtkinter.CTkLabel(master=frame_enter_others_values,
                                              text="Valor inicial X₁",
@@ -412,13 +426,13 @@ input_initial_value_x3=customtkinter.CTkEntry(master=frame_enter_others_values,
 input_initial_value_x3.grid(row=1,column=3,padx=10)
 variables=["X₁","X₂","X₃"]
 variable_list=customtkinter.CTkComboBox(master=frame_enter_others_values,values=variables,
-                                        fg_color="#767b91",text_color="#fff",
-                                        border_color="#767b91",
-                                        button_color="#676C80",
-                                        button_hover_color="#1565C0",
+                                        fg_color="#1B263B",text_color="#fff",
+                                        border_color="#1b263b",
+                                        button_color="#0D1B2A",
+                                        button_hover_color="#778DA9",
                                         font=("Lucida Console",18,"bold"),dropdown_text_color="#000",
                                         dropdown_font=("Lucida Console",18),
-                                        dropdown_fg_color="#DEE2E6",dropdown_hover_color="#ADB5BD",
+                                        dropdown_fg_color="#ccd5e0",dropdown_hover_color="#F9BEC7",
                                         )
 variable_list.grid(row=1,column=4,padx=10)
 label_error_margin=customtkinter.CTkLabel(master=frame_enter_others_values,
@@ -480,11 +494,11 @@ def limpiar_inputs_frames(*frames):
                 label_error_others_values.configure(fg_color="#e1e5ee")
 
 #Creación del frame que contendrá botones------------------------------------------------------------------------------------
-frame_button=customtkinter.CTkFrame(master=frame_box_system_of_equations,fg_color="#e1e5ee")
-frame_button.grid(row=8,columnspan=2)
+frame_button=customtkinter.CTkFrame(master=frame_box_system_of_equations,fg_color="#778DA9")
+frame_button.grid(row=8,columnspan=2,pady=2)
 
 #Botón para limpiar los input 
-button_delete=customtkinter.CTkButton(master=frame_button,text="Borrar",fg_color="#FF7096",
+button_delete=customtkinter.CTkButton(master=frame_button,text="Borrar",fg_color="#FF85A1",border_color="#FF477E",
                                       hover_color="#FF477E",**style_button,
                                       command=lambda:limpiar_inputs_frames(frame_system_of_equations))
 button_delete.grid(row=0, column=1,padx=10,pady=10,ipady=5)
@@ -500,7 +514,7 @@ title_answers.grid(row=0,column=0)
 
 #Creación y configuración del frame que contiene los elementos de la pestaña para mostrar la solución---------------------
 frame_show_solutions=customtkinter.CTkFrame(master=tab_answers,
-                                                    fg_color="#e1e5ee")
+                                                    fg_color="#778DA9")
 frame_show_solutions.grid(row=1, column=0, padx=10, pady=10,sticky="nsew")
 frame_show_solutions.grid_columnconfigure(0,weight=1)
 frame_show_solutions.grid_rowconfigure(0,weight=1)
@@ -533,14 +547,14 @@ style.layout("Treeview", [('Treeview.treearea', {'sticky': 'nswe'})])
 #Configuración de los estilos de los encabezados
 style.configure("Treeview.Heading",
                 font=("Lucida Console",20,"bold"),
-                background="#A4BDFF",
+                background="#FF99AC",
                 foreground="#343A40",
                 relief="flat",
                 padding=(5,5))
 
 #Personalización de encabezados activos
 style.map("Treeview.Heading",
-          background=[('active', '#5682FB')])
+          background=[('active', '#FF5C8A')])
 #Personalización de filas seleccionadas
 style.map("Treeview", background=[('selected', '#B8CBFF')]) 
 style.map("Treeview", foreground=[('selected', '#343A40')])  
@@ -602,7 +616,7 @@ def generate_iterations():
                 
 #Botón para dar solución al sistema de ecuaciones
 button_solution=customtkinter.CTkButton(master=frame_button,text="=",
-                                     **style_button,fg_color="#FF7096",
+                                     **style_button,fg_color="#FF85A1",border_color="#FF477E",
                                      hover_color="#FF477E",command=generate_iterations)
 button_solution.grid(row=0, column=0,padx=10,pady=10,ipady=5)
 
