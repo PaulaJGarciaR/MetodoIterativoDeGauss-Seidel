@@ -11,7 +11,7 @@ app.geometry("1280x650")
 app.columnconfigure(0,weight=1)
 app.rowconfigure(0,weight=1)
 app.configure(fg_color="#0D1B2A")
-app.resizable(False,False)
+#app.resizable(False,False)
 
 #Creación y configuración del contenedor principal y de las subpestañas---------------------------------------------------------
 tab_principal=customtkinter.CTkTabview(app,width=780, height=660,text_color="#000",
@@ -448,7 +448,7 @@ style.map('Treeview', foreground=fixed_map('foreground'),
 
 # Configuración los estilos para la tabla
 style.configure("Treeview",
-                font=("Century Gothic",18),
+                font=("Century Gothic",20),
                  background="#F8F9FA",
                 fieldbackground="#E9ECEF",
                 foreground="#343A40",
@@ -459,11 +459,11 @@ style.layout("Treeview", [('Treeview.treearea', {'sticky': 'nswe'})])
 
 #Configuración de los estilos de los encabezados
 style.configure("Treeview.Heading",
-                font=("Century Gothic",15,"bold"),
+                font=("Century Gothic",20,"bold"),
                 background="#FF99AC",
                 foreground="#343A40",
                 relief="flat",
-                padding=(5,5))
+                padding=(10,10))
 
 #Personalización de encabezados activos
 style.map("Treeview.Heading",
@@ -475,8 +475,7 @@ style.map("Treeview", foreground=[('selected', '#343A40')])
 #Creación de la tabla con ttk
 table_of_results= ttk.Treeview(frame_show_solutions, 
                                columns=("N°", "X₁", "X₂","X₃","Error|εₐ|"), 
-                               show="headings", height=10)
-
+                               show="headings", height=15)
 #Configración de los encabezados de la tabla
 table_of_results.heading("N°", text="N°")
 table_of_results.heading("X₁", text="X₁")
@@ -490,8 +489,9 @@ table_of_results.column("X₁", width=200,anchor="center")
 table_of_results.column("X₂", width=200,anchor="center")
 table_of_results.column("X₃", width=200,anchor="center")
 table_of_results.column("Error|εₐ|", width=200,anchor="center")
-table_of_results.grid(column=0,row=0,pady=10)
+table_of_results.grid(column=0,row=0,pady=30)
 
+values_x=[0,0,0]
 def generate_iterations():
     """Función para despejar las variables de cada ecuación y realizar las correspondientes iteraciones para obtener la solución"""
     system_of_equations=show_system_of_equations()
@@ -526,25 +526,35 @@ def generate_iterations():
                 tolerance_rounded_up= math.ceil(tolerance * 10**decimals) / 10**decimals 
                 table_of_results.insert('', 'end', values=(iteration + 1, x1_rounded_up,x2_rounded_up, x3_rounded_up,tolerance_rounded_up))
                 x1_old, x2_old, x3_old = x1_rounded_up, x2_rounded_up, x3_rounded_up           
-
+        values_x[0]=x1_old
+        values_x[1]=x2_old
+        values_x[2]=x3_old
+        actualizar()
+        
 style_label_solution={
     "font":("Century Gothic",15,"bold"),
      "text_color":"#fff",
-     "fg_color":"#1B263B",
      "padx":10,
-     "pady":5
-
+     "pady":5,
+     "corner_radius":10,
 }
 frame_show_solution_sel=customtkinter.CTkFrame(frame_show_solutions,fg_color="#415A77")
 frame_show_solution_sel.grid(row=1,column=0, pady=5)
 label_solution=[]
+
 for i in range(3):
-            title_x = customtkinter.CTkLabel(frame_show_solution_sel,text=f"X{sub_indices[i]} =",**style_label_solution )
-            title_x.grid(row=0, column=i*2, padx=5,pady=5)
-            value_x = customtkinter.CTkLabel(frame_show_solution_sel,text="",**style_label )
-            value_x.grid(row=0, column=i*2+1, padx=5,pady=5)
-            label_solution.append(value_x)
-print(len(label_solution))
+    title_x = customtkinter.CTkLabel(frame_show_solution_sel,text=f"X{sub_indices[i]} =",**style_label_solution,
+                                     fg_color="#1B263B" )
+    title_x.grid(row=i, column=0, padx=5,pady=5)
+    value_x = customtkinter.CTkLabel(frame_show_solution_sel,text="",**style_label_solution,width=200,
+                                     )
+    value_x.grid(row=i, column=1, padx=5,pady=5)
+    label_solution.append(value_x)
+def actualizar(): 
+    label_solution[0].configure(text=values_x[0])
+    label_solution[1].configure(text=values_x[1])
+    label_solution[2].configure(text=values_x[2])
+
 
 #Botón para dar solución al sistema de ecuaciones
 button_solution=customtkinter.CTkButton(frame_button,text="=",
