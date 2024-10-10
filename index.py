@@ -1,7 +1,7 @@
 from tkinter import ttk
 import customtkinter
 import numpy
-import math
+#import math
 
 customtkinter.set_appearance_mode("dark")
 
@@ -124,18 +124,15 @@ def save_values():
             value_entry = entry_value.get()
             row_values.append(value_entry)
         values.append(row_values)
-    values_of_the_system_of_equations=numpy.array(values)
-        
-    if numpy.any(numpy.vectorize(lambda x: x.strip() == "")(values_of_the_system_of_equations)):
-        label_error.configure(text="Error: Hay elementos vacíos en el sistema de ecuaciones.")
-        label_error.configure(** style_label_error)
-        return None     
+    values_of_the_system_of_equations=numpy.array(values)    
     try:
+        values_of_the_system_of_equations = numpy.where(
+            numpy.vectorize(lambda x: x is None or str(x).strip() == "")(values_of_the_system_of_equations),
+            '0',values_of_the_system_of_equations)
         conversion_values_of_the_system_of_equations=values_of_the_system_of_equations.astype(float)
         label_error.configure(text="")
         label_error.configure(fg_color="#778DA9")
         return conversion_values_of_the_system_of_equations
-    
     except ValueError:
         label_error.configure(text="Error:Son permitidos solo valores numericos.")
         label_error.configure(** style_label_error)
@@ -186,20 +183,9 @@ for i in range(3):
     labels.append(row_labels_sign)
     labels_values.append(row_labels_values)
 
-def zeros_main_diagonal():
-    """Función para verificar que en la diagonal principal no coeficientes sean difirentes a cero""" #-------------------------
-    system_of_equations=save_values()
-    if system_of_equations is not None:
-        if numpy.any(numpy.diag(system_of_equations==0)):
-            label_error.configure(** style_label_error)
-            label_error.configure(text="Valor de 0 en la diagonal dominante.")
-            return None 
-        return system_of_equations
-    return None
-
 def identical_or_proportional_rows():
     """Función para identificar las filas del sistema de ecuaciones son proporcionales o iguales""" #---------------------
-    system_of_equations=zeros_main_diagonal()
+    system_of_equations=save_values()
     if system_of_equations is not None:
         for r in range(3):
             for c in range(r+1, 3):
@@ -250,11 +236,23 @@ def sort_equations():
                     max_row = c
             if max_row != r:
                 system_of_equations[r], system_of_equations[max_row] = system_of_equations[max_row].copy(), system_of_equations[r].copy()
-    return system_of_equations   
+    return system_of_equations  
+ 
+def zeros_main_diagonal():
+    """Función para verificar que en la diagonal principal no coeficientes sean difirentes a cero""" #-------------------------
+    system_of_equations=sort_equations()
+    if system_of_equations is not None:
+        if numpy.any(numpy.diag(system_of_equations==0)):
+            label_error.configure(** style_label_error)
+            label_error.configure(text="Valor de 0 en la diagonal dominante.")
+            return None 
+        return system_of_equations
+    return None
+    
 
 def get_dominant_diagonal_sum_absolute_values():
     """Función oara verificar si el sistema de ecuaciones con permutación, se puede obtener la diagonal dominante"""
-    system_of_equations=sort_equations()
+    system_of_equations=zeros_main_diagonal()
     if system_of_equations is not None:
         n = len(system_of_equations)
         for r in range(n):
@@ -272,8 +270,8 @@ def get_dominant_diagonal_greater_value():
         rows, columns = system_of_equations.shape
         for r in range(rows):
             for c in range(columns):
-                diagonal = abs(system_of_equations[r][r])
-                if diagonal>abs(system_of_equations[r,c]) and diagonal>system_of_equations[c,r]:
+                diagonal = abs(system_of_equations[r,r])
+                if diagonal>abs(system_of_equations[r,c]) and diagonal>abs(system_of_equations[c,r]):
                     return system_of_equations   
     return None
 
@@ -375,15 +373,14 @@ def save_initial_values_and_margin_of_error():
         values.append(row_values)
     values_initial_values_and_margin_of_error=numpy.array(values)
     values_initial_values_and_margin_of_error[0,3]=values_initial_values_and_margin_of_error[0,3].replace('%','')
-    
-    if numpy.any(numpy.vectorize(lambda x: x.strip() == "")(values_initial_values_and_margin_of_error)):
-        label_error_others_values.configure(text="Error: Hay elementos vacíos.")
-        label_error_others_values.configure(** style_label_error)
-        return None     
+       
     try:
+        values_initial_values_and_margin_of_error = numpy.where(
+            numpy.vectorize(lambda x: x is None or str(x).strip() == "")(values_initial_values_and_margin_of_error),
+            '0',values_initial_values_and_margin_of_error)
         conversion_initial_values_and_margin_of_error=values_initial_values_and_margin_of_error.astype(float)
         label_error_others_values.configure(text="")
-        label_error_others_values.configure(fg_color="#ced4da")
+        label_error_others_values.configure(fg_color="#778DA9")
         return conversion_initial_values_and_margin_of_error
     
     except ValueError:
@@ -411,7 +408,8 @@ frame_button=customtkinter.CTkFrame(frame_box_system_of_equations,fg_color="#778
 frame_button.grid(row=8,columnspan=2,pady=2)
 
 #Botón para limpiar los input 
-button_delete=customtkinter.CTkButton(frame_button,text="Borrar",fg_color="#FF85A1",border_color="#FF477E",
+button_delete=customtkinter.CTkButton(frame_button,text="Borrar",fg_color="#FF85A1",
+                                      border_color="#FF477E",
                                       hover_color="#FF477E",**style_button,
                                       command=lambda:limpiar_inputs_frames(frame_system_of_equations,frame_enter_others_values))
 button_delete.grid(row=0, column=1,padx=10,pady=10,ipady=5)
@@ -460,8 +458,8 @@ style.layout("Treeview", [('Treeview.treearea', {'sticky': 'nswe'})])
 #Configuración de los estilos de los encabezados
 style.configure("Treeview.Heading",
                 font=("Century Gothic",20,"bold"),
-                background="#FF99AC",
-                foreground="#343A40",
+                background="#FF7096",
+                foreground="#0D1B2A",
                 relief="flat",
                 padding=(10,10))
 
@@ -469,13 +467,13 @@ style.configure("Treeview.Heading",
 style.map("Treeview.Heading",
           background=[('active', '#FF5C8A')])
 #Personalización de filas seleccionadas
-style.map("Treeview", background=[('selected', '#B8CBFF')]) 
+style.map("Treeview", background=[('selected', '#F7CAD0')]) 
 style.map("Treeview", foreground=[('selected', '#343A40')])  
  
 #Creación de la tabla con ttk
 table_of_results= ttk.Treeview(frame_show_solutions, 
                                columns=("N°", "X₁", "X₂","X₃","Error|εₐ|"), 
-                               show="headings", height=15)
+                               show="headings", height=18)
 #Configración de los encabezados de la tabla
 table_of_results.heading("N°", text="N°")
 table_of_results.heading("X₁", text="X₁")
@@ -492,17 +490,21 @@ table_of_results.column("Error|εₐ|", width=200,anchor="center")
 table_of_results.grid(column=0,row=0,pady=30)
 
 values_x=[0,0,0]
+label_warning_converge=customtkinter.CTkLabel(frame_show_solutions,text="", 
+                                              font=("Century Gothic",15,"bold"),corner_radius=4)
+label_warning_converge.grid(row=1,column=0, pady=5,padx=10)
+
 def generate_iterations():
     """Función para despejar las variables de cada ecuación y realizar las correspondientes iteraciones para obtener la solución"""
     system_of_equations=show_system_of_equations()
+    values_initial_values_and_margin_of_error=save_initial_values_and_margin_of_error()
     label_error.configure(text="")
     label_error.configure(fg_color="#778DA9")
-    values_initial_values_and_margin_of_error=save_initial_values_and_margin_of_error()
     if system_of_equations is not None and values_initial_values_and_margin_of_error is not None:
         tab_principal.set("Solución")
         max_iteration=100
         tolerance=100
-        decimals = 4
+        convergence= False
         for item in table_of_results.get_children():
             table_of_results.delete(item)
         x1_old,x2_old, x3_old = values_initial_values_and_margin_of_error[0,0],values_initial_values_and_margin_of_error[0,1],values_initial_values_and_margin_of_error[0,2]
@@ -512,9 +514,9 @@ def generate_iterations():
                 x2 = (system_of_equations[1][3] - system_of_equations[1][0] * x1 - system_of_equations[1][2] * x3_old) / system_of_equations[1][1]
                 x3 = (system_of_equations[2][3] - system_of_equations[2][0] * x1 - system_of_equations[2][1] * x2) / system_of_equations[2][2]
                
-                x1_rounded_up = math.ceil(x1 * 10**decimals) / 10**decimals
-                x2_rounded_up = math.ceil(x2 * 10**decimals) / 10**decimals
-                x3_rounded_up = math.ceil(x3 * 10**decimals) / 10**decimals
+                x1_rounded_up = numpy.round(x1,4)
+                x2_rounded_up = numpy.round(x2,4)
+                x3_rounded_up = numpy.round(x3,4)
                 
                 if variable_list.get()=="X₁":
                     tolerance=abs(((x1_rounded_up-x1_old)/x1_rounded_up)*100)
@@ -523,37 +525,48 @@ def generate_iterations():
                 elif variable_list.get()=="X₃":
                     tolerance=abs(((x3_rounded_up-x3_old)/x3_rounded_up)*100)
                     
-                tolerance_rounded_up= math.ceil(tolerance * 10**decimals) / 10**decimals 
+                tolerance_rounded_up= numpy.round(tolerance,4) 
                 table_of_results.insert('', 'end', values=(iteration + 1, x1_rounded_up,x2_rounded_up, x3_rounded_up,tolerance_rounded_up))
-                x1_old, x2_old, x3_old = x1_rounded_up, x2_rounded_up, x3_rounded_up           
+                x1_old, x2_old, x3_old = x1_rounded_up, x2_rounded_up, x3_rounded_up
+                
+                #Comprobar si el sistema de ecuaciones cumple con la convergencia
+                if tolerance_rounded_up <= values_initial_values_and_margin_of_error[0, 3]:
+                    convergence = True
+                    break 
+        if not convergence:
+            label_warning_converge.configure(text="Número máximo de iteraciones. No es convergente.")
+            label_warning_converge.configure(fg_color="#fcefb4")
+            label_warning_converge.configure(text_color="#76520e")
+        #Actualizar labels para mostrar la solución del sistema de ecuaciones             
         values_x[0]=x1_old
         values_x[1]=x2_old
         values_x[2]=x3_old
-        actualizar()
+        update_label_solution()
         
 style_label_solution={
     "font":("Century Gothic",15,"bold"),
-     "text_color":"#fff",
      "padx":10,
      "pady":5,
      "corner_radius":10,
 }
 frame_show_solution_sel=customtkinter.CTkFrame(frame_show_solutions,fg_color="#415A77")
-frame_show_solution_sel.grid(row=1,column=0, pady=5)
+frame_show_solution_sel.grid(row=2,column=0, pady=10)
 label_solution=[]
 
 for i in range(3):
     title_x = customtkinter.CTkLabel(frame_show_solution_sel,text=f"X{sub_indices[i]} =",**style_label_solution,
-                                     fg_color="#1B263B" )
-    title_x.grid(row=i, column=0, padx=5,pady=5)
-    value_x = customtkinter.CTkLabel(frame_show_solution_sel,text="",**style_label_solution,width=200,
+                                     fg_color="#FF85A1",text_color="#0D1B2A" )
+    title_x.grid(row=0, column=i*2, padx=5,pady=5)
+    value_x = customtkinter.CTkLabel(frame_show_solution_sel,text="",**style_label_solution,width=150,
                                      )
-    value_x.grid(row=i, column=1, padx=5,pady=5)
+    value_x.grid(row=0, column=i*2+1, padx=5,pady=5)
     label_solution.append(value_x)
-def actualizar(): 
-    label_solution[0].configure(text=values_x[0])
-    label_solution[1].configure(text=values_x[1])
-    label_solution[2].configure(text=values_x[2])
+    
+def update_label_solution():
+    """Función para actualizar los label con la solución del sitema de ecuaciones""" 
+    for r in range(3):
+        label_solution[r].configure(text=values_x[r])
+    
 
 
 #Botón para dar solución al sistema de ecuaciones
