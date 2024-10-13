@@ -1,7 +1,7 @@
 from tkinter import ttk
 import customtkinter
 import numpy
-#import math
+import math
 
 customtkinter.set_appearance_mode("dark")
 
@@ -213,42 +213,36 @@ def identical_or_proportional_rows():
         return system_of_equations
     return None
 
-def dominant_diagonal():
-    """Función para determinar si la diagonal principal es dominante""" #-----------------------------------------------------
-    system_of_equations=identical_or_proportional_rows()
-    if system_of_equations is not None:
-        for r in range(3):
-            row_sum = sum(abs(system_of_equations[r][c]) for c in range(3) if r != c)
-            if abs(system_of_equations[i][i]) <= row_sum:
-                return False
-        return True
-    return None
-
-def sort_equations():
+def sort_equations_sum_of_absolute_values():
     """Funcion para ordenar las ecuaciones e intercambiar filas si es necesario"""#------------------------------------------
     system_of_equations=identical_or_proportional_rows()
     if system_of_equations is not None:
         n = len(system_of_equations)
         for r in range(n):
             max_row = r
-            for c in range(r + 1, n):
-                if abs(system_of_equations[c, r]) > abs(system_of_equations[max_row, r]):
+            max_dominance = 0
+            for c in range(r, n):
+                diagonal = abs(system_of_equations[c, r])
+                sum_row = sum(abs(system_of_equations[c, k]) for k in range(n) if k != r)
+                dominance = diagonal - sum_row
+                if dominance > max_dominance:
+                    max_dominance = dominance
                     max_row = c
             if max_row != r:
                 system_of_equations[r], system_of_equations[max_row] = system_of_equations[max_row].copy(), system_of_equations[r].copy()
-    return system_of_equations  
+        return system_of_equations
+
  
 def zeros_main_diagonal():
     """Función para verificar que en la diagonal principal no coeficientes sean difirentes a cero""" #-------------------------
-    system_of_equations=sort_equations()
+    system_of_equations=sort_equations_sum_of_absolute_values()
     if system_of_equations is not None:
         if numpy.any(numpy.diag(system_of_equations==0)):
             label_error.configure(** style_label_error)
             label_error.configure(text="Valor de 0 en la diagonal dominante.")
             return None 
         return system_of_equations
-    return None
-    
+    return None 
 
 def get_dominant_diagonal_sum_absolute_values():
     """Función oara verificar si el sistema de ecuaciones con permutación, se puede obtener la diagonal dominante"""
@@ -259,34 +253,45 @@ def get_dominant_diagonal_sum_absolute_values():
             diagonal = abs(system_of_equations[r][r])
             suma_fila = sum(abs(system_of_equations[r][c]) for c in range(n) if c != r)
             if diagonal <= suma_fila:
-                return system_of_equations      
-        return system_of_equations 
+                return False     
+        return system_of_equations
     return None
 
 def get_dominant_diagonal_greater_value():
     """Función para validar que los valores de la diagonal principal son mayores a los valores de la fila y columna y obtener la diagonal dominante"""
     system_of_equations=get_dominant_diagonal_sum_absolute_values()
-    if system_of_equations is not None:
-        rows, columns = system_of_equations.shape
-        for r in range(rows):
-            for c in range(columns):
-                diagonal = abs(system_of_equations[r,r])
-                if diagonal>abs(system_of_equations[r,c]) and diagonal>abs(system_of_equations[c,r]):
-                    return system_of_equations   
-    return None
+    if system_of_equations is not None and not system_of_equations:
+        system_of_equations=zeros_main_diagonal()
+        n = len(system_of_equations)
+        for r in range(n):
+            diagonal_value = abs(system_of_equations[r, r])
+            if any(diagonal_value <= abs(system_of_equations[r, c]) for c in range(n) if c != r):
+                for c in range(n):
+                    if c != r and abs(system_of_equations[c, r]) > diagonal_value:
+                        system_of_equations[[r, c]] = system_of_equations[[c, r]]
+                        break 
+            if any(diagonal_value <= abs(system_of_equations[c, r]) for c in range(n) if c != r):
+                for c in range(n):
+                    if c != r and abs(system_of_equations[c, r]) > diagonal_value:
+                        system_of_equations[[r, c]] = system_of_equations[[c, r]]  
+                        break  
+        return system_of_equations   
 
 def show_system_of_equations():
     """Función para mostrar el sistema de ecuaciones valido"""
-    system_of_equations=get_dominant_diagonal_greater_value()
-    if system_of_equations is False:
-        label_error.configure(** style_label_error)
-        label_error.configure(text="No es posible obtener la diagonal dominante")
-        return None
+    system_of_equations=get_dominant_diagonal_sum_absolute_values()
     if system_of_equations is not None:
-        for r in range(3):
-            for c in range(4):
-                labels_values[r][c].configure(text=system_of_equations[r,c])
-        return system_of_equations    
+        if system_of_equations is False:
+            system_of_equations=get_dominant_diagonal_greater_value()
+            for r in range(3):
+                for c in range(4):
+                    labels_values[r][c].configure(text=system_of_equations[r,c])
+            return system_of_equations
+        else:
+            for r in range(3):
+                for c in range(4):
+                    labels_values[r][c].configure(text=system_of_equations[r,c])
+            return system_of_equations 
     return None
 
 style_entry_others_values = {
@@ -504,19 +509,21 @@ def generate_iterations():
         tab_principal.set("Solución")
         max_iteration=100
         tolerance=100
+        decimals=4
         convergence= False
         for item in table_of_results.get_children():
             table_of_results.delete(item)
         x1_old,x2_old, x3_old = values_initial_values_and_margin_of_error[0,0],values_initial_values_and_margin_of_error[0,1],values_initial_values_and_margin_of_error[0,2]
+        table_of_results.insert('', 'end', values=(0, x1_old,x2_old, x3_old,0))
         for iteration in range(max_iteration):
             if (values_initial_values_and_margin_of_error[0,3])<=tolerance:
                 x1 = (system_of_equations[0][3] - system_of_equations[0][1] * x2_old - system_of_equations[0][2] * x3_old) / system_of_equations[0][0]
                 x2 = (system_of_equations[1][3] - system_of_equations[1][0] * x1 - system_of_equations[1][2] * x3_old) / system_of_equations[1][1]
                 x3 = (system_of_equations[2][3] - system_of_equations[2][0] * x1 - system_of_equations[2][1] * x2) / system_of_equations[2][2]
                
-                x1_rounded_up = numpy.round(x1,4)
-                x2_rounded_up = numpy.round(x2,4)
-                x3_rounded_up = numpy.round(x3,4)
+                x1_rounded_up = math.ceil(x1 * 10**decimals) / 10**decimals
+                x2_rounded_up = math.ceil(x2 * 10**decimals) / 10**decimals
+                x3_rounded_up = math.ceil(x3 * 10**decimals) / 10**decimals
                 
                 if variable_list.get()=="X₁":
                     tolerance=abs(((x1_rounded_up-x1_old)/x1_rounded_up)*100)
@@ -525,7 +532,7 @@ def generate_iterations():
                 elif variable_list.get()=="X₃":
                     tolerance=abs(((x3_rounded_up-x3_old)/x3_rounded_up)*100)
                     
-                tolerance_rounded_up= numpy.round(tolerance,4) 
+                tolerance_rounded_up= math.ceil(tolerance * 10**decimals) / 10**decimals 
                 table_of_results.insert('', 'end', values=(iteration + 1, x1_rounded_up,x2_rounded_up, x3_rounded_up,tolerance_rounded_up))
                 x1_old, x2_old, x3_old = x1_rounded_up, x2_rounded_up, x3_rounded_up
                 
