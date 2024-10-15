@@ -275,29 +275,42 @@ def get_dominant_diagonal_greater_value():
             diagonal_value = abs(system_of_equations[r, r])
             if any(diagonal_value <= abs(system_of_equations[r, c]) for c in range(n) if c != r):
                 for c in range(n):
-                    if c != r and abs(system_of_equations[c, r]) > diagonal_value:
+                    if c != r and abs(system_of_equations[r, c]) > diagonal_value:
                         system_of_equations[[r, c]] = system_of_equations[[c, r]]
                         break 
             if any(diagonal_value <= abs(system_of_equations[c, r]) for c in range(n) if c != r):
                 for c in range(n):
                     if c != r and abs(system_of_equations[c, r]) > diagonal_value:
-                        system_of_equations[[r, c]] = system_of_equations[[c, r]]  
+                        system_of_equations[[r, c]] = system_of_equations[[c, r]]
                         break
         diagonal_value = abs(system_of_equations[r, r]) 
         if any(diagonal_value <= abs(system_of_equations[r, c]) for c in range(n) if c != r) and any(diagonal_value <= abs(system_of_equations[c, r]) for c in range(n) if c != r):
             return False
         return system_of_equations  
+    
+def zeros_main_diagonal_greater_value():
+    """Función para verificar que en la diagonal principal no coeficientes sean difirentes a cero""" #-------------------------
+    system_of_equations=get_dominant_diagonal_greater_value()
+    if system_of_equations is False:
+        return False
+    if system_of_equations is not None:
+        if numpy.any(numpy.diag(system_of_equations==0)):
+            label_error.configure(** style_label_error)
+            label_error.configure(text="Valor de 0 en la diagonal dominante.")
+            return None 
+        return system_of_equations
+    return None 
 
 def show_system_of_equations():
     """Función para mostrar el sistema de ecuaciones valido"""
     system_of_equations=get_dominant_diagonal_sum_absolute_values()
     if system_of_equations is not None:
         if system_of_equations is False:
-            system_of_equations=get_dominant_diagonal_greater_value()
+            system_of_equations=zeros_main_diagonal_greater_value()
             if system_of_equations is False:
                 label_error.configure(** style_label_error)
                 label_error.configure(text="No es posible obtener la diagonal dominante")
-            else:
+            elif system_of_equations is not None:
                 for r in range(3):
                     for c in range(4):
                         labels_values[r][c].configure(text=system_of_equations[r,c])
