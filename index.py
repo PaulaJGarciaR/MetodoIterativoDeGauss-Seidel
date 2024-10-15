@@ -2,6 +2,7 @@ from tkinter import ttk
 import customtkinter
 import numpy
 import math
+from fractions import Fraction
 
 customtkinter.set_appearance_mode("dark")
 
@@ -122,9 +123,16 @@ def save_values():
         row_values = []
         for entry_value in row:
             value_entry = entry_value.get()
+            if '/' in value_entry:
+                value_entry=Fraction(value_entry)
+            elif 'sqrt(' in value_entry and value_entry.endswith(')'):
+                value_entry = value_entry.replace('sqrt(', '').replace(')', '')
+                value_entry = math.sqrt(float(value_entry))
+                value_entry = round(value_entry,4)     
             row_values.append(value_entry)
         values.append(row_values)
-    values_of_the_system_of_equations=numpy.array(values)    
+    values_of_the_system_of_equations=numpy.array(values)
+   
     try:
         values_of_the_system_of_equations = numpy.where(
             numpy.vectorize(lambda x: x is None or str(x).strip() == "")(values_of_the_system_of_equations),
@@ -231,7 +239,7 @@ def sort_equations_sum_of_absolute_values():
             if max_row != r:
                 system_of_equations[r], system_of_equations[max_row] = system_of_equations[max_row].copy(), system_of_equations[r].copy()
         return system_of_equations
-
+   
  
 def zeros_main_diagonal():
     """Función para verificar que en la diagonal principal no coeficientes sean difirentes a cero""" #-------------------------
@@ -274,8 +282,11 @@ def get_dominant_diagonal_greater_value():
                 for c in range(n):
                     if c != r and abs(system_of_equations[c, r]) > diagonal_value:
                         system_of_equations[[r, c]] = system_of_equations[[c, r]]  
-                        break  
-        return system_of_equations   
+                        break
+        diagonal_value = abs(system_of_equations[r, r]) 
+        if any(diagonal_value <= abs(system_of_equations[r, c]) for c in range(n) if c != r) and any(diagonal_value <= abs(system_of_equations[c, r]) for c in range(n) if c != r):
+            return False
+        return system_of_equations  
 
 def show_system_of_equations():
     """Función para mostrar el sistema de ecuaciones valido"""
@@ -283,10 +294,14 @@ def show_system_of_equations():
     if system_of_equations is not None:
         if system_of_equations is False:
             system_of_equations=get_dominant_diagonal_greater_value()
-            for r in range(3):
-                for c in range(4):
-                    labels_values[r][c].configure(text=system_of_equations[r,c])
-            return system_of_equations
+            if system_of_equations is False:
+                label_error.configure(** style_label_error)
+                label_error.configure(text="No es posible obtener la diagonal dominante")
+            else:
+                for r in range(3):
+                    for c in range(4):
+                        labels_values[r][c].configure(text=system_of_equations[r,c])
+                return system_of_equations
         else:
             for r in range(3):
                 for c in range(4):
@@ -403,7 +418,14 @@ def limpiar_inputs_frames(*frames):
     for row in labels_values:
         for label_value in row:
             label_value.configure(text="")
-            
+    
+    for r in range(3):
+        label_solution[r].configure(text="")
+           
+    for item in table_of_results.get_children():
+        table_of_results.delete(item)
+     
+              
     label_error.configure(text="")
     label_error.configure(fg_color="#778DA9")
     label_error_others_values.configure(text="")
@@ -422,7 +444,7 @@ button_delete.grid(row=0, column=1,padx=10,pady=10,ipady=5)
 #Creación y configración de la pestaña para mostrar la solución del sistema de ecuaciones---------------------------------
 tab_answers=tab_principal.add("Solución")
 tab_answers.columnconfigure(0,weight=1)
-#Titulo de la pestaña
+#Titulo de la pestaña para mostrar la solución
 title_answers=customtkinter.CTkLabel(tab_answers,
                              text="Solución Sistema de ecuaciones 3x3",
                              font=("Impact",35),text_color="#fff")
@@ -509,7 +531,6 @@ def generate_iterations():
         tab_principal.set("Solución")
         max_iteration=100
         tolerance=100
-        decimals=4
         convergence= False
         for item in table_of_results.get_children():
             table_of_results.delete(item)
@@ -521,9 +542,9 @@ def generate_iterations():
                 x2 = (system_of_equations[1][3] - system_of_equations[1][0] * x1 - system_of_equations[1][2] * x3_old) / system_of_equations[1][1]
                 x3 = (system_of_equations[2][3] - system_of_equations[2][0] * x1 - system_of_equations[2][1] * x2) / system_of_equations[2][2]
                
-                x1_rounded_up = math.ceil(x1 * 10**decimals) / 10**decimals
-                x2_rounded_up = math.ceil(x2 * 10**decimals) / 10**decimals
-                x3_rounded_up = math.ceil(x3 * 10**decimals) / 10**decimals
+                x1_rounded_up = round(x1,4)
+                x2_rounded_up = round(x2,4)
+                x3_rounded_up = round(x3,4)
                 
                 if variable_list.get()=="X₁":
                     tolerance=abs(((x1_rounded_up-x1_old)/x1_rounded_up)*100)
@@ -532,7 +553,7 @@ def generate_iterations():
                 elif variable_list.get()=="X₃":
                     tolerance=abs(((x3_rounded_up-x3_old)/x3_rounded_up)*100)
                     
-                tolerance_rounded_up= math.ceil(tolerance * 10**decimals) / 10**decimals 
+                tolerance_rounded_up= round(tolerance,4)
                 table_of_results.insert('', 'end', values=(iteration + 1, x1_rounded_up,x2_rounded_up, x3_rounded_up,tolerance_rounded_up))
                 x1_old, x2_old, x3_old = x1_rounded_up, x2_rounded_up, x3_rounded_up
                 
@@ -549,17 +570,20 @@ def generate_iterations():
         values_x[1]=x2_old
         values_x[2]=x3_old
         update_label_solution()
-        
+
+#Estillos de los label para mostrar la solución del sistema de ecuaciones      
 style_label_solution={
     "font":("Century Gothic",15,"bold"),
      "padx":10,
      "pady":5,
      "corner_radius":10,
 }
+#Creación de un frame para mostrar la solución final y valor para cada variable del sistema de ecuaciones
 frame_show_solution_sel=customtkinter.CTkFrame(frame_show_solutions,fg_color="#415A77")
 frame_show_solution_sel.grid(row=2,column=0, pady=10)
 label_solution=[]
 
+#Creación de los labels para mostrar la solución
 for i in range(3):
     title_x = customtkinter.CTkLabel(frame_show_solution_sel,text=f"X{sub_indices[i]} =",**style_label_solution,
                                      fg_color="#FF85A1",text_color="#0D1B2A" )
@@ -573,8 +597,6 @@ def update_label_solution():
     """Función para actualizar los label con la solución del sitema de ecuaciones""" 
     for r in range(3):
         label_solution[r].configure(text=values_x[r])
-    
-
 
 #Botón para dar solución al sistema de ecuaciones
 button_solution=customtkinter.CTkButton(frame_button,text="=",
@@ -582,7 +604,50 @@ button_solution=customtkinter.CTkButton(frame_button,text="=",
                                      hover_color="#FF477E",command=generate_iterations)
 button_solution.grid(row=0, column=0,padx=10,pady=10,ipady=5)
 
+#Creación de la pestaña para mostrar el manual de uduario--------------------------------------------------------------
 tab_user_manual=tab_principal.add("Manual de Uso")
 tab_user_manual.columnconfigure(0,weight=1)
 
+#titulo de la pestaña de manual de usuario
+title_answers=customtkinter.CTkLabel(tab_user_manual,
+                             text="Manual de Usuario",
+                             font=("Impact",35),text_color="#fff")
+title_answers.grid(row=0,column=0,pady=10)
+
+#Creación de un frame que contendrá la información correspondiente al manual de usuario.
+frame_show_user_manual=customtkinter.CTkFrame(tab_user_manual,fg_color="#778DA9",
+                                                        width=1000, height=400)
+frame_show_user_manual.grid(row=1, column=0, padx=10, pady=10)
+frame_show_user_manual.grid_columnconfigure(0, weight=1)
+
+#Instrucciones del manual de usuario
+label_manual=customtkinter.CTkLabel(frame_show_user_manual,text=
+        """                         
+        1. Ingresar los coeficientes correspondientes al sistema de ecuaciones, el sistema se encargará de validar 
+           los datos ingresados.
+                                    
+        2. Dar click en el botón validar,para verificar si el sistema de ecuaciones se puede resolver por metódo de 
+           Gauss-Seidel y evaluará algunas condiciones, entre ellas asegurar la convergencia del sistema, y consiste 
+           en evaluar si el sistema de ecuaciones es diagonalmente dominante,si no lo es realizará cambios de filas 
+           y mostrará el sistema de ecuaciones ordenado que cumple con esa condición.
+                                    
+        3. Ingresar los valores iniciales para cada variable.
+                                    
+        4. Ingresar el valor del error relativo porcentual, el valor deseado se debe colocar con el simbolo % al final 
+           del valor, por ejemplo 2%.
+                                    
+        5. Seleccionar la variable deseada, para que según los valores dados para esa variable en cada iteración, 
+           se pueda calcular el error relativo porcentual.
+          
+        6. Dar click en el botón =, que lo direccionará a una nueva pestaña, en donde mediante una tabla, se 
+        mostrarán las iteraciones realizadas y la solución final al sistema de ecuaciones.
+                """, font=("Century Gothic",18,"bold"),text_color="#0D1B2A",anchor='w',justify='left' )
+label_manual.grid(column=0, row=1,sticky='w')
+
+#label que muestra el tipo de datos permitidos
+label_allowed_values=customtkinter.CTkLabel(frame_show_user_manual,text=
+        """Valores Permitidos: Números enteros y Números Decimales.""",
+        font=("Century Gothic",18,"bold"),text_color="#0D1B2A",fg_color="#FF99AC")      
+label_allowed_values.grid(column=0, row=2,pady=10) 
+                     
 app.mainloop()
