@@ -548,7 +548,7 @@ def generate_iterations():
         for item in table_of_results.get_children():
             table_of_results.delete(item)
         x1_old,x2_old, x3_old = values_initial_values_and_margin_of_error[0,0],values_initial_values_and_margin_of_error[0,1],values_initial_values_and_margin_of_error[0,2]
-        table_of_results.insert('', 'end', values=(0, x1_old,x2_old, x3_old,0))
+        table_of_results.insert('', 'end', values=(0, x1_old,x2_old, x3_old,"-"))
         for iteration in range(max_iteration):
             if (values_initial_values_and_margin_of_error[0,3])<=tolerance:
                 x1 = (system_of_equations[0][3] - system_of_equations[0][1] * x2_old - system_of_equations[0][2] * x3_old) / system_of_equations[0][0]
